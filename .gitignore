@@ -4,3 +4,5 @@ Description/resources/paper.pdf
 *.o
 svm_light/svm_classify
 svm_light/svm_learn
+part_1/
+part_2/
