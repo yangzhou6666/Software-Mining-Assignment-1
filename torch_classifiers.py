@@ -5,6 +5,8 @@ import numpy as np
 import random
 from torch.nn.functional import normalize
 from sklearn.preprocessing import StandardScaler
+import os 
+
 
 class LogisticRegression(torch.nn.Module):
      def __init__(self, input_dim, output_dim):
@@ -50,7 +52,7 @@ def load_data(train_path, test_path):
     return X_train, Y_train, X_test, Y_test
 
 
-def run_logistic_regression(train_path, test_path):
+def run_logistic_regression(train_path, test_path, vbose=False):
     # load data
     X_train, Y_train, X_test, Y_test = load_data(train_path, test_path)
     X_train, X_test = torch.Tensor(X_train),torch.Tensor(X_test)
@@ -69,7 +71,7 @@ def run_logistic_regression(train_path, test_path):
     losses_test = []
     Iterations = []
     iter = 0
-    for epoch in tqdm(range(int(epochs)),desc='Training Epochs'):
+    for epoch in range(int(epochs)):
         x = X_train
         labels = y_train
         optimizer.zero_grad() # Setting our stored gradients equal to zero
@@ -93,6 +95,13 @@ def run_logistic_regression(train_path, test_path):
                 correct_test += np.sum(predicted_test == y_test.detach().numpy())
                 accuracy_test = 100 * correct_test/total_test
                 losses_test.append(loss_test.item())
+
+                TP = np.sum(predicted_test * y_test.detach().numpy())
+                FP = np.sum(predicted_test * (1-y_test.detach().numpy()))
+                FN = np.sum((1-predicted_test) * y_test.detach().numpy())
+                precision = round(TP/(TP+FP) * 100, 2)
+                recall = round(TP/(TP+FN) * 100, 2)
+                f_1 = round(2*precision*recall/(precision+recall), 2)
                 
                 # Calculating the loss and accuracy for the train dataset
                 total = 0
@@ -102,25 +111,50 @@ def run_logistic_regression(train_path, test_path):
                 accuracy = 100 * correct/total
                 losses.append(loss.item())
                 Iterations.append(iter)
-                
-                print(f"Iteration: {iter}. \nTest - Loss: {loss_test.item()}. Accuracy: {accuracy_test}")
-                print(f"Train -  Loss: {loss.item()}. Accuracy: {accuracy}\n")
+                if vbose:
+                    print(f"Iteration: {iter}. \nTest - Loss: {loss_test.item()}. Accuracy: {accuracy_test}. Precision: {precision}. Recall: {recall}. F1: {f_1}")
+                    print(f"Train -  Loss: {loss.item()}. Accuracy: {accuracy}\n")
 
         iter+=1
+
+        return accuracy_test, precision, recall, f_1
 
 
     
 
 if __name__=="__main__":
     split_type = ['k_folder', 's_k_folder']
+    root_data = './part_2'
     train_path = './part_2/k_folder/train_1.txt'
     test_path = './part_2/k_folder/test_1.txt'
+    k = 10
     # train_path = './part_1/train.txt'
     # test_path = './part_1/test.txt'
 
     random.seed(0)
     np.random.seed(0)
     torch.manual_seed(0)
+    for type in split_type:
+        accs = []
+        precisions = []
+        recalls = []
+        f1s = []
+        for i in range(k):
+            train_path = os.path.join(root_data, type, f'train_{i}.txt')
+            test_path = os.path.join(root_data, type, f'test_{i}.txt')
+            accuracy_test, precision, recall, f_1 = run_logistic_regression(train_path, test_path)
+            accs.append(accuracy_test)
+            precisions.append(precision)
+            recalls.append(recall)
+            f1s.append(f_1)
+        
+        print(f"Results for {type} split:")
+        for i in range(k):
+            print('|' + str(i) + '|' + str(accs[i]) + '%|' + str(precisions[i]) + '%|' + str(recalls[i]) + '%|' + str(f1s[i]) + '%|')
+        
+        print('|' + 'avg' + '|' + str(round(sum(accs) / k, 2)) + '%|' + str(round(sum(precisions) / k, 2)) + '%|' + str(round(sum(recalls) / k, 2)) + '%|' + str(round(sum(f1s) / k, 2)) + '%|')
+        
+        print("\n\n")
+            
 
-    run_logistic_regression(train_path, test_path)
     
