@@ -29,5 +29,9 @@ def analyze_svm(result_path, k=10):
 
 
 if __name__ == '__main__':
-    result_path = './part_2/'
-    analyze_svm(result_path)
+    result_k_folder = './part_2/k_folder/'
+    analyze_svm(result_k_folder)
+    
+    print("\n\n\n")
+    result_s_k_folder = './part_2/s_k_folder/'
+    analyze_svm(result_s_k_folder)
