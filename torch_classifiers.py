@@ -6,6 +6,8 @@ import random
 from torch.nn.functional import normalize
 from sklearn.preprocessing import StandardScaler
 import os 
+from pykeops.torch import LazyTensor
+from Sklearn_PyTorch import TorchRandomForestClassifier
 
 
 class LogisticRegression(torch.nn.Module):
@@ -120,7 +122,39 @@ def run_logistic_regression(train_path, test_path, vbose=False):
         return accuracy_test, precision, recall, f_1
 
 
+
+
+def run_random_forest(train_path, test_path, vbose=False):
+    # load data
+    X_train, Y_train, X_test, Y_test = load_data(train_path, test_path)
+    X_train, X_test = torch.Tensor(X_train),torch.Tensor(X_test)
+    y_train, y_test = torch.Tensor(Y_train),torch.Tensor(Y_test)
+    my_model = TorchRandomForestClassifier(nb_trees=3, nb_samples=X_train.shape[0], max_depth=2, bootstrap=True)
+    print("Model Created.")
+    print("Training...")
+    my_model.fit(X_train, y_train)
+    print("Training Complete.")
     
+    # Prediction function
+    predicted_results = []
+    for input in X_test:
+        predicted_results.append(my_model.predict(input))
+
+    accuracy = np.sum(predicted_results == y_test.detach().numpy()) / len(predicted_results)
+    
+    TP = np.sum(predicted_results * y_test.detach().numpy())
+    FP = np.sum(predicted_results * (1-y_test.detach().numpy()))
+    FN = np.sum((1-np.array(predicted_results)) * y_test.detach().numpy())
+    precision = round(TP/(TP+FP) * 100, 2)
+    recall = round(TP/(TP+FN) * 100, 2)
+    f_1 = round(2*precision*recall/(precision+recall), 2)
+    if vbose:
+        print(f"Accuracy: {accuracy}")
+        print(f"Precision: {precision}")
+        print(f"Recall: {recall}")
+        print(f"F1: {f_1}")
+    return accuracy, precision, recall, f_1
+
 
 if __name__=="__main__":
     split_type = ['k_folder', 's_k_folder']
@@ -130,7 +164,11 @@ if __name__=="__main__":
     k = 10
     # train_path = './part_1/train.txt'
     # test_path = './part_1/test.txt'
+    dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
+    run_random_forest(train_path, test_path, vbose=True)
+
+    exit()
     random.seed(0)
     np.random.seed(0)
     torch.manual_seed(0)
