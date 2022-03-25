@@ -211,7 +211,7 @@ def run_random_forest(train_path, test_path, vbose=False):
     X_train, Y_train, X_test, Y_test = load_data(train_path, test_path)
     X_train, X_test = torch.Tensor(X_train),torch.Tensor(X_test)
     y_train, y_test = torch.Tensor(Y_train),torch.Tensor(Y_test)
-    my_model = TorchRandomForestClassifier(nb_trees=10, nb_samples=X_train.shape[0], max_depth=3, bootstrap=True)
+    my_model = TorchRandomForestClassifier(nb_trees=3, nb_samples=X_train.shape[0], max_depth=2, bootstrap=True)
     my_model.fit(X_train, y_train)
     
     # Prediction function
@@ -325,6 +325,7 @@ if __name__=="__main__":
 
     main_dnn(split_type, root_data, k)
     main_lr(split_type, root_data, k)
+    main_rf(split_type, root_data, k)
 
             
 
