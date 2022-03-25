@@ -83,6 +83,13 @@ The results will be stored under `./part_2/k_folder/log_k.txt` and `./part_2/s_k
 
 ## Logistic regression
 
+For other models, you need to run
+```
+python torch_classifier.py
+```
+
+* Note!: it may throw a warning (that does not affect the running of the code) saying a header file can not be found. That is related to a dependency library. Just ignore the warning. 
+
 ### Results for 10-folder cross-validation
 
 |  k   | Acc  | Prec | Reca | $F_1$ |
